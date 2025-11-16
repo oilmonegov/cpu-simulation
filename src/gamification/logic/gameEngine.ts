@@ -17,6 +17,7 @@ import { executeInstruction, calculateEfficiency, calculateScore } from './cpuRu
 
 export class GameEngine {
   private state: GameState
+  private cyclesSinceLastTaskGeneration = 0
 
   constructor() {
     this.state = this.createInitialState()
@@ -69,6 +70,7 @@ export class GameEngine {
     this.state.speedBonus = 0
 
     // Generate initial tasks
+    this.cyclesSinceLastTaskGeneration = 0
     this.generateNewTask()
   }
 
@@ -85,6 +87,7 @@ export class GameEngine {
     }
 
     this.state.taskQueue.push(task)
+    this.cyclesSinceLastTaskGeneration = 0
   }
 
   /**
@@ -275,6 +278,7 @@ export class GameEngine {
     if (!this.state.isPlaying) return
 
     this.state.clockCycle++
+    this.cyclesSinceLastTaskGeneration++
 
     // Check for task timeouts
     this.state.taskQueue.forEach((task) => {
@@ -289,7 +293,12 @@ export class GameEngine {
     })
 
     // Generate new tasks periodically
-    if (this.state.taskQueue.length < 3 && Math.random() > 0.7) {
+    if (
+      this.state.taskQueue.length < 2 ||
+      this.cyclesSinceLastTaskGeneration >= 5
+    ) {
+      this.generateNewTask()
+    } else if (this.state.taskQueue.length < 3 && Math.random() > 0.7) {
       this.generateNewTask()
     }
   }
@@ -299,6 +308,7 @@ export class GameEngine {
    */
   reset() {
     this.state = this.createInitialState()
+    this.cyclesSinceLastTaskGeneration = 0
   }
 
   /**

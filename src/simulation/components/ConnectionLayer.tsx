@@ -88,23 +88,8 @@ function ConnectionLayer({ busTransfers, speed, containerRef }: ConnectionLayerP
     const newOffsets = new Map<string, number>()
     const activeTransfers = busTransfers.filter((t) => t.active)
 
-    // Group transfers by connection pair to handle bidirectional/mesh connections
-    const connectionGroups = new Map<string, BusTransfer[]>()
-    
-    activeTransfers.forEach((transfer) => {
-      // Create a key for the connection pair (bidirectional)
-      const key1 = `${transfer.from}-${transfer.to}`
-      const key2 = `${transfer.to}-${transfer.from}`
-      const key = key1 < key2 ? key1 : key2
-      
-      if (!connectionGroups.has(key)) {
-        connectionGroups.set(key, [])
-      }
-      connectionGroups.get(key)!.push(transfer)
-    })
-
-    // Calculate paths for each transfer, offsetting for multiple flows on same path
-    // Group by connection pair to calculate proper offsets
+    // Group transfers by path (from-to pair) to calculate offsets for parallel flows
+    // Multiple transfers on the same path will be offset to avoid overlap
     const pathGroups = new Map<string, BusTransfer[]>()
     
     activeTransfers.forEach((transfer) => {

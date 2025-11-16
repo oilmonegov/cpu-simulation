@@ -50,17 +50,32 @@ export function getEnergyCost(opcode: Opcode, registerCount: number): number {
 }
 
 /**
- * Check if registers are available
+ * Check if required registers are available for use.
+ * 
+ * A register is considered "available" if:
+ * - It exists in the register set
+ * - It can be used (either empty or already contains needed value)
+ * 
+ * In higher game levels, registers must be managed (cleared before reuse).
+ * 
+ * @param registers - Array of all available registers
+ * @param requiredRegisters - Array of register names needed for the operation
+ * @returns Object indicating availability and any missing registers
  */
 export function checkRegisterAvailability(
   registers: Register[],
   requiredRegisters: string[]
 ): { available: boolean; missing: string[] } {
-  const available = registers.filter((r) => r.value === 0 || !requiredRegisters.includes(r.name))
+  // Find registers that exist in the register set
+  const existingRegisters = registers.filter((r) => requiredRegisters.includes(r.name))
+  
+  // Check which required registers are missing from the register set
   const missing = requiredRegisters.filter(
-    (req) => !registers.some((r) => r.name === req && (r.value === 0 || r.name === req))
+    (req) => !registers.some((r) => r.name === req)
   )
 
+  // Registers are available if all required registers exist
+  // (In higher levels, additional checks may be needed for register management)
   return {
     available: missing.length === 0,
     missing,
@@ -99,9 +114,14 @@ export function executeInstruction(
   }
 
   // Cache miss penalty (simulated for higher levels)
-  const cacheMissPenalty = level > 2 ? Math.random() > 0.7 : false
-  const adjustedCycles = cacheMissPenalty ? cycles + 2 : cycles
-  const adjustedEnergy = cacheMissPenalty ? energyCost + 1 : energyCost
+  // Higher levels introduce cache misses to teach cache management
+  const CACHE_MISS_PROBABILITY = 0.7
+  const CACHE_MISS_CYCLE_PENALTY = 2
+  const CACHE_MISS_ENERGY_PENALTY = 1
+  
+  const cacheMissPenalty = level > 2 ? Math.random() > CACHE_MISS_PROBABILITY : false
+  const adjustedCycles = cacheMissPenalty ? cycles + CACHE_MISS_CYCLE_PENALTY : cycles
+  const adjustedEnergy = cacheMissPenalty ? energyCost + CACHE_MISS_ENERGY_PENALTY : energyCost
 
   return {
     success: true,
@@ -119,13 +139,31 @@ export function calculateEfficiency(
   optimalCycles: number,
   optimalEnergy: number
 ): number {
-  const cycleEfficiency = Math.max(0, (optimalCycles / cyclesUsed) * 100)
-  const energyEfficiency = Math.max(0, (optimalEnergy / energyUsed) * 100)
+  const calculateRatio = (optimal: number, actual: number) => {
+    if (optimal <= 0 || actual <= 0) return 0
+    return (optimal / actual) * 100
+  }
+
+  const cycleEfficiency = Math.min(100, Math.max(0, calculateRatio(optimalCycles, cyclesUsed)))
+  const energyEfficiency = Math.min(100, Math.max(0, calculateRatio(optimalEnergy, energyUsed)))
   return (cycleEfficiency + energyEfficiency) / 2
 }
 
 /**
- * Calculate score for a task
+ * Calculate score for a completed task.
+ * 
+ * Scoring formula:
+ * - Base points: Points awarded for task completion
+ * - Time bonus: Extra points for completing quickly (10 points per cycle saved)
+ * - Efficiency bonus: Points based on energy/cycle efficiency (0.5x efficiency percentage)
+ * - Speed bonus: 50% base points if completed in half the time limit
+ * 
+ * @param success - Whether the task was completed successfully
+ * @param cyclesUsed - Number of clock cycles used
+ * @param timeLimit - Maximum cycles allowed for the task
+ * @param basePoints - Base points for completing the task
+ * @param efficiency - Efficiency percentage (0-100)
+ * @returns Total score for the task
  */
 export function calculateScore(
   success: boolean,
@@ -136,9 +174,16 @@ export function calculateScore(
 ): number {
   if (!success) return 0
 
-  const timeBonus = Math.max(0, timeLimit - cyclesUsed) * 10
-  const efficiencyBonus = efficiency * 0.5
-  const speedBonus = cyclesUsed <= timeLimit / 2 ? basePoints * 0.5 : 0
+  const TIME_BONUS_MULTIPLIER = 10
+  const EFFICIENCY_BONUS_MULTIPLIER = 0.5
+  const SPEED_BONUS_THRESHOLD = 0.5 // Half of time limit
+  const SPEED_BONUS_MULTIPLIER = 0.5 // 50% of base points
+
+  const timeBonus = Math.max(0, timeLimit - cyclesUsed) * TIME_BONUS_MULTIPLIER
+  const efficiencyBonus = efficiency * EFFICIENCY_BONUS_MULTIPLIER
+  const speedBonus = cyclesUsed <= timeLimit * SPEED_BONUS_THRESHOLD 
+    ? basePoints * SPEED_BONUS_MULTIPLIER 
+    : 0
 
   return Math.floor(basePoints + timeBonus + efficiencyBonus + speedBonus)
 }

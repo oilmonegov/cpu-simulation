@@ -22,11 +22,12 @@ function Memory({ memory, maxVisible = 16, columns = 4 }: MemoryProps) {
           }
           
           // Determine styling based on active and used states
+          const cellState = mem.active ? 'active' : mem.used ? 'used' : 'inactive'
           const getCellClassName = () => {
-            if (mem.active) {
+            if (cellState === 'active') {
               return 'bg-green-600/20 border-green-400 shadow-md shadow-green-500/30'
             }
-            if (mem.used) {
+            if (cellState === 'used') {
               return 'bg-blue-600/10 border-blue-500/50 hover:bg-blue-600/20'
             }
             return 'bg-gray-800/50 border-gray-600/50 hover:bg-gray-800'
@@ -36,6 +37,8 @@ function Memory({ memory, maxVisible = 16, columns = 4 }: MemoryProps) {
             <motion.div
               key={mem.address}
               className={`aspect-square flex flex-col items-center justify-center rounded border font-mono text-xs transition-all ${getCellClassName()}`}
+              data-state={cellState}
+              data-address={mem.address}
               animate={{
                 scale: mem.active ? 1.1 : 1,
               }}

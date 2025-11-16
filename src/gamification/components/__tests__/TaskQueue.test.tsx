@@ -138,7 +138,13 @@ describe('TaskQueue Component', () => {
       })
       
       const { unmount } = render(<TaskQueue tasks={[task]} />)
-      expect(screen.getByText(new RegExp(`10 ${operator.replace('*', '\\*')} 5`))).toBeInTheDocument()
+      expect(
+        screen.getByText((_content, node) => {
+          if (!(node instanceof HTMLElement)) return false
+          const text = node.textContent?.replace(/\s+/g, ' ').trim()
+          return node.classList.contains('text-sm') && text?.includes(`10 ${operator} 5`)
+        })
+      ).toBeInTheDocument()
       unmount()
     })
   })

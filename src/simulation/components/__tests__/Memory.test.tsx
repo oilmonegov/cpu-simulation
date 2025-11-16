@@ -72,7 +72,7 @@ describe('Memory Component', () => {
     memory[1].active = true
 
     const { container } = render(<Memory memory={memory} />)
-    const activeElements = container.querySelectorAll('.bg-green-600')
+    const activeElements = container.querySelectorAll('[data-state="active"]')
     expect(activeElements.length).toBeGreaterThan(0)
   })
 
@@ -81,7 +81,7 @@ describe('Memory Component', () => {
     memory.forEach((mem) => (mem.active = false))
 
     const { container } = render(<Memory memory={memory} />)
-    const inactiveElements = container.querySelectorAll('.bg-gray-800')
+    const inactiveElements = container.querySelectorAll('[data-state="inactive"]')
     expect(inactiveElements.length).toBeGreaterThan(0)
   })
 
@@ -110,7 +110,7 @@ describe('Memory Component', () => {
     memory[2].used = true
 
     const { container } = render(<Memory memory={memory} />)
-    const usedElements = container.querySelectorAll('.bg-blue-600')
+    const usedElements = container.querySelectorAll('[data-state="used"]')
     expect(usedElements.length).toBeGreaterThan(0)
   })
 
@@ -120,11 +120,11 @@ describe('Memory Component', () => {
     memory[1].active = true
 
     const { container } = render(<Memory memory={memory} />)
-    const activeElements = container.querySelectorAll('.bg-green-600')
+    const activeElements = container.querySelectorAll('[data-state="active"]')
     expect(activeElements.length).toBeGreaterThan(0)
     
     // Should not have blue styling when active
-    const usedElements = container.querySelectorAll('.bg-blue-600')
+    const usedElements = container.querySelectorAll('[data-state="used"]')
     expect(usedElements.length).toBe(0)
   })
 })

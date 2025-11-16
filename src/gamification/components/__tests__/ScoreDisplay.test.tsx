@@ -46,7 +46,8 @@ describe('ScoreDisplay Component', () => {
     render(<ScoreDisplay score={0} accuracy={0} speedBonus={0} efficiencyBonus={0} />)
     expect(screen.getByText('0')).toBeInTheDocument()
     expect(screen.getByText('0.0%')).toBeInTheDocument()
-    expect(screen.getByText('+0%')).toBeInTheDocument()
+    const zeroBonuses = screen.getAllByText('+0%')
+    expect(zeroBonuses).toHaveLength(2)
   })
 })
 

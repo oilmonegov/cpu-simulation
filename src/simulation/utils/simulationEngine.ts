@@ -117,7 +117,7 @@ export class SimulationEngine {
       },
       currentExample: ExampleType.CALCULATOR,
       speed: 1000,
-      showCodeView: true,
+      showCodeView: false,
       codeViewMode: 'assembly',
       busTransfers: [],
       history: [],
