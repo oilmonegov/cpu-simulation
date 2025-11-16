@@ -66,9 +66,6 @@ export function checkRegisterAvailability(
   registers: Register[],
   requiredRegisters: string[]
 ): { available: boolean; missing: string[] } {
-  // Find registers that exist in the register set
-  const existingRegisters = registers.filter((r) => requiredRegisters.includes(r.name))
-  
   // Check which required registers are missing from the register set
   const missing = requiredRegisters.filter(
     (req) => !registers.some((r) => r.name === req)
