@@ -4,7 +4,6 @@
  */
 
 import {
-  CPUState,
   Instruction,
   InstructionPhase,
   Register,
